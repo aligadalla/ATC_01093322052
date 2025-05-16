@@ -8,11 +8,11 @@
 
 ## ✨ Features
 
-| Role    | Highlights                                                                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Visitor | Multilingual events (EN ⇆ AR) &nbsp;·&nbsp; Search + price / category filters                                                        |
-| User    | Sign-up / Login / Logout · Book & cancel own tickets · Profile page with booking history                                             |
-| Admin   | **Admin panel** (`/admin`) · Create / delete events · View bookings for any event · Cancel any booking · <u>No booking</u> for admin |
+| Role    | Highlights                                                                                                                        |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Visitor | Multilingual events (EN ⇆ AR) &nbsp;·&nbsp; Search + price / category filters                                                     |
+| User    | Sign-up / Login / Logout · Book & cancel own tickets · Profile page with booking history                                          |
+| Admin   | **Admin panel** (`/admin`) · Create / delete events · View bookings for any event · Cancel any booking · **No booking for admin** |
 
 ---
 

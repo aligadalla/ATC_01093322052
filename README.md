@@ -34,7 +34,7 @@ git clone https://github.com/<you>/event-booking-system.git
 cd event-booking-system
 ```
 
-## Install Dependencies
+## 1. Install Dependencies
 
 ```bash
 # Back-end
@@ -48,22 +48,22 @@ npm install
 cd ..
 ```
 
-## Environment variables
+## 2. Environment variables
 
-"backend/.env"
+`backend/.env`
 
 ```bash
 MONGODB_URI=mongodb://localhost:27017/event-booking
 JWT_SECRET=supersecret
 ```
 
-## Seed the database (Optional)
+## 3. Seed the database (Optional)
 
 ```bash
 node backend/scripts/seed.js # inserts admin, users, events, bookings
 ```
 
-## Run Servers
+## 4. Run Servers
 
 ```bash
 # ── Terminal 1  (back-end)

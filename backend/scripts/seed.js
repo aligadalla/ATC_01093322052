@@ -1,82 +1,48 @@
 /**
  * Seed script — Event-Booking System
  * ----------------------------------
- * 1.  Creates admin + normal users
- * 2.  Creates bilingual events with realistic data
- * 3.  Creates random bookings that respect ticket counts
+ * 1. Creates admin + 10 users
+ * 2. Creates 20 bilingual events
+ * 3. Creates random bookings that honour ticket counts
  *
- * Run:  npm run seed           (package.json => "seed": "node scripts/seed.js")
+ * Run:  npm run seed
  */
 
 import "dotenv/config";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { faker } from "@faker-js/faker";
-import translate from "@vitalets/google-translate-api";
-import pLimit from "p-limit";
 
 import User from "../user/user.model.js";
 import Event from "../event/event.model.js";
 import Booking from "../booking/booking.model.js";
 
-/* ─────────── Tunables ─────────── */
+/* ───── Tunables ───── */
 const NUM_USERS = 10;
 const NUM_EVENTS = 20;
 const MAX_BOOKINGS_PER_USER = 4;
 const PASSWORD_PLAIN = "Pass123!";
-/* ──────────────────────────────── */
+/* ──────────────────── */
 
-/* ---------- Translation helpers ---------- */
-const limit = pLimit(5); // max 5 concurrent HTTP requests
+/* ---------- Arabic placeholder ---------- */
+const AR_PLACEHOLDER = "هذا نص عربي افتراضي";
+const toArabic = async () => AR_PLACEHOLDER;
 
-const googleTranslate = (txt) =>
-  limit(
-    () => translate(txt, { to: "ar", client: "gtx" }) // 'gtx' avoids quota errors
-  );
-
-const toArabic = async (text) => {
-  const clean = text.replace(/\n/g, " ").trim();
-  try {
-    const { text: ar } = await googleTranslate(clean);
-    return ar;
-  } catch {
-    /* fallback: translate sentence-by-sentence */
-    try {
-      const sentences = clean.split(/\. +/).filter(Boolean);
-      const translated = [];
-      for (const s of sentences) {
-        const { text: arPart } = await googleTranslate(s);
-        translated.push(arPart);
-      }
-      return translated.join(". ");
-    } catch {
-      console.warn("⚠️  Translate failed, using fallback.");
-      return "AR_" + clean;
-    }
-  }
-};
-
-/* ---------- Realistic categories ---------- */
+/* ---------- Category / tag pool ---------- */
 const CATEGORIES = [
   { en: "Music", ar: "موسيقى", tag: { en: "Concert", ar: "حفلة" } },
   { en: "Sports", ar: "رياضة", tag: { en: "Match", ar: "مباراة" } },
-  { en: "Technology", ar: "تقنية", tag: { en: "Tech", ar: "تقنية" } },
-  { en: "Business", ar: "أعمال", tag: { en: "Startup", ar: "شركة ناشئة" } },
+  { en: "Tech", ar: "تقنية", tag: { en: "Expo", ar: "معرض" } },
+  { en: "Business", ar: "أعمال", tag: { en: "Startup", ar: "شركة" } },
   { en: "Art", ar: "فن", tag: { en: "Gallery", ar: "معرض" } },
-  { en: "Education", ar: "تعليم", tag: { en: "Workshop", ar: "ورشة" } },
   { en: "Health", ar: "صحة", tag: { en: "Wellness", ar: "عافية" } },
   { en: "Comedy", ar: "كوميديا", tag: { en: "Stand-up", ar: "ستاند أب" } },
-  { en: "Travel", ar: "سفر", tag: { en: "Expo", ar: "معرض" } },
 ];
 
-/* ---------- Description builder ---------- */
+/* ---------- Helpers ---------- */
 const makeEnglishDescription = () =>
-  [
-    faker.commerce.productDescription(), // real marketing line
-    faker.company.catchPhrase(), // catchy phrase
-  ].join(" ");
+  [faker.commerce.productDescription(), faker.company.catchPhrase()].join(" ");
 
-/* ---------- DB helpers ---------- */
 const connectDB = () => mongoose.connect(process.env.MONGODB_URI);
 const wipeDB = () =>
   Promise.all([
@@ -98,15 +64,15 @@ const createUsers = async () => {
   });
 
   const users = Array.from({ length: NUM_USERS }).map(() => ({
-    username: faker.internet.username().toLowerCase(),
+    username: faker.internet.userName().toLowerCase(),
     email: faker.internet.email().toLowerCase(),
     password: hash,
     status: "Online",
   }));
 
-  const userDocs = await User.insertMany(users);
-  console.log(`👤  Users: ${userDocs.length + 1} (incl. admin)`);
-  return { admin, users: userDocs };
+  const docs = await User.insertMany(users);
+  console.log(`👤  Users: ${docs.length + 1} (incl. admin)`);
+  return { admin, users: docs };
 };
 
 const createEvents = async (adminId) => {
@@ -114,12 +80,7 @@ const createEvents = async (adminId) => {
 
   for (let i = 0; i < NUM_EVENTS; i++) {
     const titleEn = faker.company.catchPhrase();
-    const descriptionEn = makeEnglishDescription();
-
-    const [titleAr, descriptionAr] = await Promise.all([
-      toArabic(titleEn),
-      toArabic(descriptionEn),
-    ]);
+    const descEn = makeEnglishDescription();
 
     const {
       en: catEn,
@@ -131,17 +92,17 @@ const createEvents = async (adminId) => {
     const sold = faker.number.int({ min: 0, max: total });
 
     events.push({
-      title: { en: titleEn, ar: titleAr },
-      description: { en: descriptionEn, ar: descriptionAr },
+      title: { en: titleEn, ar: await toArabic() },
+      description: { en: descEn, ar: await toArabic() },
       category: { en: catEn, ar: catAr },
       venue: {
         en: faker.location.city(),
-        ar: await toArabic(faker.location.city()),
+        ar: await toArabic(),
       },
       tags: [tag],
 
       eventDate: faker.date.future(),
-      price: faker.number.int({ min: 0, max: 250 }),
+      price: faker.number.int({ min: 0, max: 200 }),
       imageUrl: faker.image.urlPicsumPhotos(),
 
       totalTickets: total,
@@ -160,22 +121,23 @@ const createEvents = async (adminId) => {
 const createBookings = async (users, events) => {
   const bookings = [];
 
-  users.forEach((user) => {
+  users.forEach((u) => {
     const count = faker.number.int({ min: 1, max: MAX_BOOKINGS_PER_USER });
-    const choices = faker.helpers.shuffle(events).slice(0, count);
+    const picks = faker.helpers.shuffle(events).slice(0, count);
 
-    choices.forEach((event) => {
-      if (event.ticketsAvailable < 1) return;
+    picks.forEach((ev) => {
+      if (ev.ticketsAvailable < 1) return;
 
       bookings.push({
-        user: user._id,
-        event: event._id,
-        quantity: 1,
+        user: u._id,
+        event: ev._id,
+        qty: 1,
+        totalPrice: ev.price,
         status: "confirmed",
       });
 
-      event.ticketsSold += 1;
-      event.ticketsAvailable -= 1;
+      ev.ticketsSold += 1;
+      ev.ticketsAvailable -= 1;
     });
   });
 
@@ -184,7 +146,7 @@ const createBookings = async (users, events) => {
   console.log(`📑  Bookings: ${bookings.length}`);
 };
 
-/* ---------- Main runner ---------- */
+/* ---------- Main ---------- */
 const main = async () => {
   try {
     await connectDB();
@@ -196,7 +158,7 @@ const main = async () => {
     const events = await createEvents(admin._id);
     await createBookings(users, events);
 
-    console.log("🌱  Seeding finished. Admin password:", PASSWORD_PLAIN);
+    console.log("🌱  Seed done. Admin password:", PASSWORD_PLAIN);
   } catch (err) {
     console.error(err);
   } finally {

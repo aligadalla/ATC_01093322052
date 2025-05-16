@@ -1,28 +1,98 @@
 <h1 align="center">🎟️ Event-Booking System</h1>
-
-Node + Express back-end & Next JS front-end in **one repo**.  
-Users can browse / book events, while admins manage events & bookings.
-
----
-
-## ✨ Features (quick list)
-
-| Role           | Features                                                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Visitor        | • Multilingual events (EN ⇄ AR)<br/>• Search + price / category filters                                                                                      |
-| Logged-in user | • Register / Login / Logout<br/>• Book & cancel own tickets<br/>• Profile page with booking history                                                          |
-| Admin          | • Separate admin panel (`/admin`)<br/>• Create / delete events<br/>• View bookings for any event<br/>• Cancel any booking<br/>• **Admin cannot book** events |
+<p align="center">
+  <b>Monorepo · Express API + Next JS front-end</b><br/>
+  Users browse & book events — Admins manage everything.
+</p>
 
 ---
 
-## 🔐 Demo credentials
+## ✨ Features
 
-| Role  | Email                 | Password   |
-| ----- | --------------------- | ---------- |
-| Admin | **admin@example.com** | `Pass123!` |
-| User  | **user1@example.com** | `Pass123!` |
+|
+Role  
+|
+Highlights  
+|
+|
 
-_(Accounts are inserted automatically by the seed script.)_
+---
+
+## |
+
+|
+|
+Visitor  
+|
+Multilingual events (EN ⇆ AR)
+&nbsp;
+·
+&nbsp;
+Search + price / category filters  
+|
+|
+User  
+|
+Sign-up / Login / Logout · Book & cancel own tickets · Profile page with booking history  
+|
+|
+Admin  
+|
+**
+Admin panel
+**
+(
+`/admin`
+) · Create / delete events · View bookings for any event · Cancel any booking ·
+<
+u
+
+> No booking
+> </
+> u
+>
+> for admin
+> |
+
+---
+
+## 🔐 Demo credentials (seed data)
+
+|
+Role  
+|
+Email  
+|
+Password
+|
+|
+
+---
+
+## |
+
+## |
+
+|
+|
+Admin
+|
+**
+admin@example.com
+**
+|
+`Pass123!`
+|
+|
+User  
+|
+**
+user1@example.com
+**
+|
+`Pass123!`
+|
+
+> Accounts are inserted automatically by `seed.js`.
 
 ---
 
@@ -31,20 +101,19 @@ _(Accounts are inserted automatically by the seed script.)_
 ```bash
 git clone https://github.com/<you>/event-booking-system.git
 cd event-booking-system
-```
-
 1 Install dependencies
 BASH
 
-# installs both backend and frontend
+# Back-end
+cd backend
+npm install
+cd ..
 
-npm run install-all
-(root package.json contains that helper script:
-"install-all": "npm --prefix backend i && npm --prefix frontend i")
-
+# Front-end
+cd frontend
+npm install
+cd ..
 2 Environment variables
-Create the following files:
-
 backend/.env
 
 ENV
@@ -57,21 +126,29 @@ frontend/.env.local
 ENV
 
 NEXT_PUBLIC_API_BASE=http://localhost:4000/api
-3 ( Optional ) Seed the database with demo data
+3 Seed the database (Optional)
 BASH
 
-npm run seed # runs backend/scripts/seed.js
-4 Start both servers
+node backend/scripts/seed.js   # inserts admin, users, events, bookings
+4 Run servers
 BASH
 
-npm run dev # concurrently runs back-end on :4000 and front-end on :3000
+# ── Terminal 1  (back-end)
+cd backend
+npm start                     # → http://localhost:4000
+
+# ── Terminal 2  (front-end)
+cd frontend
+npm run dev                   # → http://localhost:3000
 Open http://localhost:3000 in your browser.
-Admin panel lives at /admin (visible only when logged in as admin).
+Admin panel is available at /admin (visible only when logged-in as admin).
 
-🧩 Stack
-Front-end – Next JS 13/14 (App router) + TailwindCSS
-Back-end – Node, Express, MongoDB (Mongoose)
-Auth – JWT stored in HTTP-only cookie
-File upload – Multer
-Validation – Zod
-Dummy data – Faker.js (npm run seed)
+🧩 Tech stack
+Layer	Tech
+Front-end	Next JS 13/14 (App Router), Tailwind CSS
+Back-end	Node, Express, MongoDB (Mongoose)
+Auth	JWT stored in HTTP-only cookie
+File upload	Multer
+Validation	Zod
+Dummy data	Faker.js (seed.js)
+```
